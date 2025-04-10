@@ -1,4 +1,4 @@
-# alfabetizacion/utls.py
+# alfabetizacion/urls.py
 """
 URL configuration for alfabetizacion project.
 

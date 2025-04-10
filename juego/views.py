@@ -17,9 +17,13 @@ def obtener_palabra(request, nivel):
     opciones = [p.palabra for p in random.sample(otras_palabras, min(3, len(otras_palabras)))] + [palabra.palabra]
     random.shuffle(opciones)
     
+    # Extraer solo el nombre del archivo
+    imagen_nombre = palabra.imagen.name.split('/')[-1] if palabra.imagen else ''
+    audio_nombre = palabra.audio.name.split('/')[-1] if palabra.audio else ''
+    
     return JsonResponse({
         'palabra': palabra.palabra,
-        'imagen': palabra.imagen.url if palabra.imagen else '',
-        'audio': palabra.audio.url if palabra.audio else '',
+        'imagen': imagen_nombre,
+        'audio': audio_nombre,
         'opciones': opciones
     })

@@ -1,3 +1,4 @@
+#alfabetizacion/settings.py
 """
 Django settings for alfabetizacion project.
 

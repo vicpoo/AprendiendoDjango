@@ -1,3 +1,4 @@
+#juego/models.py
 from django.db import models
 
 class Palabra(models.Model):
