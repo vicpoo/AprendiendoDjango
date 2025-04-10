@@ -1,0 +1,105 @@
+<!-- juego/templates/juego/inicio.html-->
+{% extends 'juego/base.html' %}
+
+{% block content %}
+    <h1>¡Aprendamos Juntos!</h1>
+    
+    <div class="niveles">
+        <button class="nivel-btn facil" onclick="iniciarJuego('F')">Fácil</button>
+        <button class="nivel-btn medio" onclick="iniciarJuego('M')">Medio</button>
+        <button class="nivel-btn dificil" onclick="iniciarJuego('D')">Difícil</button>
+    </div>
+    
+    <div id="juego" class="juego-container" style="display: none;">
+        <div class="puntuacion">Puntos: <span id="puntos">0</span></div>
+        <img id="imagen-palabra" class="imagen-palabra" src="" alt="Imagen de la palabra">
+        <button id="audio-btn" class="audio-btn" onclick="reproducirAudio()">🔊</button>
+        <div class="feedback" id="feedback"></div>
+        <div class="opciones" id="opciones-container"></div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        let palabraCorrecta = '';
+        let audioActual = '';
+        let puntos = 0;
+        
+        function iniciarJuego(nivel) {
+            document.getElementById('juego').style.display = 'block';
+            puntos = 0;
+            document.getElementById('puntos').textContent = puntos;
+            cargarNuevaPalabra(nivel);
+        }
+        
+        function cargarNuevaPalabra(nivel) {
+            fetch(`/api/palabra/${nivel}/`)
+                .then(response => response.json())
+                .then(data => {
+                    palabraCorrecta = data.palabra;
+                    audioActual = `/media/audios/${data.audio}`;
+                    
+                    document.getElementById('imagen-palabra').src = `/media/imagenes/${data.imagen}`;
+                    document.getElementById('feedback').textContent = '';
+                    document.getElementById('feedback').className = 'feedback';
+                    
+                    const opcionesContainer = document.getElementById('opciones-container');
+                    opcionesContainer.innerHTML = '';
+                    
+                    data.opciones.forEach(opcion => {
+                        const boton = document.createElement('button');
+                        boton.className = 'opcion-btn';
+                        boton.textContent = opcion;
+                        boton.onclick = function() {
+                            verificarRespuesta(opcion);
+                        };
+                        opcionesContainer.appendChild(boton);
+                    });
+                });
+        }
+        
+        function verificarRespuesta(opcion) {
+            const feedback = document.getElementById('feedback');
+            
+            if (opcion === palabraCorrecta) {
+                feedback.textContent = '¡Correcto! 🎉';
+                feedback.className = 'feedback felicitaciones';
+                puntos += 10;
+                document.getElementById('puntos').textContent = puntos;
+                
+                // Marcar botón correcto
+                const botones = document.querySelectorAll('.opcion-btn');
+                botones.forEach(boton => {
+                    if (boton.textContent === palabraCorrecta) {
+                        boton.className = 'opcion-btn correcto';
+                    }
+                    boton.disabled = true;
+                });
+                
+                // Cargar nueva palabra después de 2 segundos
+                setTimeout(() => {
+                    const nivel = document.querySelector('.nivel-btn:not([style="display: none;"])').classList[1];
+                    cargarNuevaPalabra(nivel === 'facil' ? 'F' : nivel === 'medio' ? 'M' : 'D');
+                }, 2000);
+            } else {
+                feedback.textContent = 'Inténtalo de nuevo 😊';
+                feedback.className = 'feedback';
+                
+                // Marcar botón incorrecto
+                const botonIncorrecto = [...document.querySelectorAll('.opcion-btn')].find(
+                    b => b.textContent === opcion
+                );
+                if (botonIncorrecto) {
+                    botonIncorrecto.className = 'opcion-btn incorrecto';
+                }
+            }
+        }
+        
+        function reproducirAudio() {
+            if (audioActual) {
+                const audio = new Audio(audioActual);
+                audio.play();
+            }
+        }
+    </script>
+{% endblock %}
